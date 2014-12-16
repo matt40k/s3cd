@@ -7,21 +7,19 @@ namespace Solus3configdiscovery
     public class Services
     {
         private RegistryKey baseRegistryKey = Registry.LocalMachine;
-        private string defaultBinn;
         private string subKey = @"SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL10.SIMS2008\MSSQLServer".ToUpper();
 
         public string GetDmsDirectory
         {
             get
             {
-                string value = GetPathForService("SIMS .net Document Server");
+                var value = GetPathForService("SIMS .net Document Server");
                 try
                 {
                     value = Path.GetDirectoryName(value);
                 }
                 catch (Exception)
                 {
-                    
                 }
                 return value;
             }
@@ -31,7 +29,7 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string value = "";
+                var value = "";
                 /* TO-DO
                  * ===== 
                  * The SIMS.ini contains the BINN folder, but this is set
@@ -45,16 +43,30 @@ namespace Solus3configdiscovery
             }
         }
 
+        private RegistryKey BaseRegistryKey
+        {
+            get { return baseRegistryKey; }
+            set { baseRegistryKey = value; }
+        }
+
+        private string DefaultBinn { get; set; }
+
+        private string SubKey
+        {
+            get { return subKey; }
+            set { subKey = value; }
+        }
+
         private string GetPathForService(string serviceName)
         {
-            string value = "";
+            var value = "";
             try
             {
                 // Reference: http://dotnetstep.blogspot.com/2009/06/get-windowservice-executable-path-in.html
-                RegistryKey services = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services");
+                var services = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services");
                 if (services != null)
                 {
-                    object pathtoexecutable = services.OpenSubKey(serviceName).GetValue("ImagePath");
+                    var pathtoexecutable = services.OpenSubKey(serviceName).GetValue("ImagePath");
                     value = pathtoexecutable.ToString();
                 }
             }
@@ -66,55 +78,18 @@ namespace Solus3configdiscovery
 
         private string Read(string KeyName)
         {
-            RegistryKey key2 = this.baseRegistryKey.OpenSubKey(this.subKey);
+            var key2 = baseRegistryKey.OpenSubKey(subKey);
             if (key2 == null)
             {
                 return null;
             }
             try
             {
-                return (string)key2.GetValue(KeyName.ToUpper());
+                return (string) key2.GetValue(KeyName.ToUpper());
             }
             catch (Exception)
             {
                 return null;
-            }
-        }
-
-        private RegistryKey BaseRegistryKey
-        {
-            get
-            {
-                return this.baseRegistryKey;
-            }
-            set
-            {
-                this.baseRegistryKey = value;
-            }
-        }
-
-
-        private string DefaultBinn
-        {
-            get
-            {
-                return this.defaultBinn;
-            }
-            set
-            {
-                this.defaultBinn = value;
-            }
-        }
-
-        private string SubKey
-        {
-            get
-            {
-                return this.subKey;
-            }
-            set
-            {
-                this.subKey = value;
             }
         }
     }

@@ -1,16 +1,15 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Solus3configdiscovery
 {
     public class Output
     {
-        private string fileName;
+        private readonly string fileName;
 
         public Output()
         {
-            string path = Directory.GetCurrentDirectory();
-            string filename = "solus3.config.settings.txt";
+            var path = Directory.GetCurrentDirectory();
+            var filename = "solus3.config.settings.txt";
             fileName = Path.Combine(path, filename);
             if (File.Exists(fileName))
             {
@@ -38,7 +37,7 @@ namespace Solus3configdiscovery
         {
             var aLog = new FileStream(fileName, FileMode.Append);
             var sw = new StreamWriter(aLog);
-            for (int i = 1; i <= no; i++)
+            for (var i = 1; i <= no; i++)
             {
                 sw.WriteLine("");
             }

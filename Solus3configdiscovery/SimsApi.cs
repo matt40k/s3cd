@@ -4,35 +4,35 @@ using System.Reflection;
 namespace Solus3configdiscovery
 {
     /// <summary>
-    /// This class uses the Capita Business Objects to collect the schools
-    /// Name, DFE number (include LA) and postcode from the SIMS database
-    /// 
-    /// It has been excluded from the public repository due to copyright.
+    ///     This class uses the Capita Business Objects to collect the schools
+    ///     Name, DFE number (include LA) and postcode from the SIMS database
+    ///     It has been excluded from the public repository due to copyright.
     /// </summary>
     public class SimsApi
     {
-        private string dfeCode;
-        private string schName;
-        private string postCode;
-        private string simsDir;
+        private readonly string simsDir;
 
         public SimsApi(string simspath)
         {
             simsDir = simspath;
-            AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.AssemblyResolve += new ResolveEventHandler(currentDomain_AssemblyResolve);
+            var currentDomain = AppDomain.CurrentDomain;
+            currentDomain.AssemblyResolve += currentDomain_AssemblyResolve;
 
-            dfeCode = "<UNKNOWN>";
-            schName = "<UNKNOWN>";
-            postCode = "<UNKNOWN>";
+            GetDfeCode = "<UNKNOWN>";
+            GetSchName = "<UNKNOWN>";
+            GetPostCode = "<UNKNOWN>";
         }
+
+        public string GetDfeCode { get; private set; }
+        public string GetSchName { get; private set; }
+        public string GetPostCode { get; private set; }
 
         public void Connect()
         {
             // Removed due to copyright.
         }
 
-        Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly currentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             //This handler is called only when the common language runtime tries to bind to the assembly and fails.
 
@@ -41,13 +41,14 @@ namespace Solus3configdiscovery
             string strTempAssmbPath = null;
 
             objExecutingAssemblies = Assembly.GetExecutingAssembly();
-            AssemblyName[] arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
+            var arrReferencedAssmbNames = objExecutingAssemblies.GetReferencedAssemblies();
 
             //Loop through the array of referenced assembly names.
-            foreach (AssemblyName strAssmbName in arrReferencedAssmbNames)
+            foreach (var strAssmbName in arrReferencedAssmbNames)
             {
                 //Check for the assembly names that have raised the "AssemblyResolve" event.
-                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) == args.Name.Substring(0, args.Name.IndexOf(",")))
+                if (strAssmbName.FullName.Substring(0, strAssmbName.FullName.IndexOf(",")) ==
+                    args.Name.Substring(0, args.Name.IndexOf(",")))
                 {
                     //Build the path of the assembly from where it has to be loaded.				
                     strTempAssmbPath = simsDir;
@@ -62,21 +63,6 @@ namespace Solus3configdiscovery
 
             //Return the loaded assembly.
             return MyAssembly;
-        }
-
-        public string GetDfeCode
-        {
-            get { return dfeCode; }
-        }
-
-        public string GetSchName
-        {
-            get { return schName; }
-        }
-
-        public string GetPostCode
-        {
-            get { return postCode; }
         }
     }
 }

@@ -6,10 +6,11 @@ namespace Solus3configdiscovery
 {
     public class Settings
     {
-        Services services;
-        Proxy proxy;
-        SimsApi simsApi;
-        string notes;
+        private string fmsDir;
+        private string simsDir;
+        private readonly Proxy proxy;
+        private readonly Services services;
+        private readonly SimsApi simsApi;
 
         public Settings()
         {
@@ -34,15 +35,15 @@ namespace Solus3configdiscovery
             get { return @"\\" + GetComputerName + @"\UpdateRepository$"; }
         }
 
-        private string simsDir = null;
-        private string fmsDir = null;
-
         private string simsDirectory
         {
             get
             {
-                if (!string.IsNullOrEmpty(simsDir)) { return simsDir; }
-                IniFile iniSims = new IniFile(simsIni);
+                if (!string.IsNullOrEmpty(simsDir))
+                {
+                    return simsDir;
+                }
+                var iniSims = new IniFile(simsIni);
                 return simsDir = iniSims.Read("Setup", "SIMSDotNetDirectory");
             }
         }
@@ -51,8 +52,11 @@ namespace Solus3configdiscovery
         {
             get
             {
-                if (!string.IsNullOrEmpty(fmsDir)) { return fmsDir; }
-                IniFile iniFms = new IniFile(simsIni);
+                if (!string.IsNullOrEmpty(fmsDir))
+                {
+                    return fmsDir;
+                }
+                var iniFms = new IniFile(simsIni);
                 return fmsDir = iniFms.Read("Setup", "FinanceDirectory");
             }
         }
@@ -61,8 +65,11 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string value = Path.Combine(winDir, "sims.ini");
-                if (File.Exists(value)) { return value; }
+                var value = Path.Combine(winDir, "sims.ini");
+                if (File.Exists(value))
+                {
+                    return value;
+                }
                 return "";
             }
         }
@@ -76,16 +83,15 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string connect = System.IO.Path.Combine(simsDirectory, "Connect.ini");
-                IniFile iniFile = new IniFile(connect);
-                string value = iniFile.Read("SIMSConnection", "ServerName");
+                var connect = Path.Combine(simsDirectory, "Connect.ini");
+                var iniFile = new IniFile(connect);
+                var value = iniFile.Read("SIMSConnection", "ServerName");
                 try
                 {
                     return value.Split('\\')[1];
                 }
                 catch (Exception)
                 {
-
                 }
                 return "";
             }
@@ -95,8 +101,8 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string connect = System.IO.Path.Combine(simsDirectory, "Connect.ini");
-                IniFile iniFile = new IniFile(connect);
+                var connect = Path.Combine(simsDirectory, "Connect.ini");
+                var iniFile = new IniFile(connect);
                 return iniFile.Read("SIMSConnection", "DatabaseName");
             }
         }
@@ -105,11 +111,11 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string value = "";
-                string connect = System.IO.Path.Combine(fmsDirectory, "FMSConnect.ini");
+                var value = "";
+                var connect = Path.Combine(fmsDirectory, "FMSConnect.ini");
                 if (File.Exists(connect))
                 {
-                    IniFile iniFile = new IniFile(connect);
+                    var iniFile = new IniFile(connect);
                     value = iniFile.Read("FMSConnection", "Server");
                     try
                     {
@@ -117,7 +123,6 @@ namespace Solus3configdiscovery
                     }
                     catch (Exception)
                     {
-
                     }
                 }
                 return value;
@@ -128,11 +133,11 @@ namespace Solus3configdiscovery
         {
             get
             {
-                string value = "";
-                string connect = System.IO.Path.Combine(fmsDirectory, "FMSConnect.ini");
+                var value = "";
+                var connect = Path.Combine(fmsDirectory, "FMSConnect.ini");
                 if (File.Exists(connect))
                 {
-                    IniFile iniFile = new IniFile(connect);
+                    var iniFile = new IniFile(connect);
                     value = iniFile.Read("FMSConnection", "Database");
                 }
                 return value;
@@ -143,7 +148,7 @@ namespace Solus3configdiscovery
         {
             get
             {
-                IniFile iniFile = new IniFile(simsIni);
+                var iniFile = new IniFile(simsIni);
                 return iniFile.Read("Setup", "SIMSDirectory");
             }
         }
@@ -159,7 +164,7 @@ namespace Solus3configdiscovery
             {
                 /* Because Express only allows you to compile as 32bit, 
                  * this will return the x86 program files.              */
-                string programFiles = GetProgramFiles;
+                var programFiles = GetProgramFiles;
                 if (programFiles.EndsWith("\\"))
                 {
                     programFiles = programFiles.Substring(0, programFiles.Length - 1);
@@ -187,22 +192,6 @@ namespace Solus3configdiscovery
             get { return proxy.GetProxyPort; }
         }
 
-        public bool isLocalDrive(string descriptor)
-        {
-            string queryString = "SELECT * From Win32_LogicalDisk where name = '" + descriptor + "' and DriveType = 3";
-            DateTime now = DateTime.Now;
-            ManagementObjectCollection objects = new ManagementObjectSearcher(queryString).Get();
-            DateTime.Now.Subtract(now);
-            foreach (ManagementObject obj2 in objects)
-            {
-                if (obj2["name"].ToString().ToUpper() == descriptor.ToUpper())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public string GetSchoolName
         {
             get { return simsApi.GetSchName; }
@@ -222,35 +211,31 @@ namespace Solus3configdiscovery
         {
             set
             {
-                if (string.IsNullOrEmpty(notes)) { notes = value; }
-                else { notes = notes + "\n" + value; }
+                if (string.IsNullOrEmpty(GetNotes))
+                {
+                    GetNotes = value;
+                }
+                else
+                {
+                    GetNotes = GetNotes + "\n" + value;
+                }
             }
         }
 
-        public string GetNotes
-        {
-            get { return notes; }
-        }
-
-        private string GetDriveName(string fileName)
-        {
-            int index = fileName.IndexOf(Path.VolumeSeparatorChar);
-            if (index > 0)
-            {
-                return fileName.Substring(0, index + 1);
-            }
-            return fileName;
-        }
+        public string GetNotes { get; private set; }
 
         public string GetSimsSqlBinn
         {
             get
             {
                 string sqlBinn = null;
-                IniFile iniFile = new IniFile(simsIni);
+                var iniFile = new IniFile(simsIni);
                 sqlBinn = iniFile.Read("Setup", "SIMSSQLAppsDirectory");
 
-                if (string.IsNullOrEmpty(sqlBinn)) { return null; }
+                if (string.IsNullOrEmpty(sqlBinn))
+                {
+                    return null;
+                }
                 if (!isLocalDrive(GetDriveName(sqlBinn)))
                 {
                     AddToNotes = "SIMS SQL Binn appears to incorrect - not a local drive - " + sqlBinn;
@@ -264,16 +249,45 @@ namespace Solus3configdiscovery
             get
             {
                 string sqlBinn = null;
-                IniFile iniFile = new IniFile(simsIni);
+                var iniFile = new IniFile(simsIni);
                 sqlBinn = iniFile.Read("FMSSQL", "FMSSQLAppsDirectory");
 
-                if (string.IsNullOrEmpty(sqlBinn)) { return null; }
+                if (string.IsNullOrEmpty(sqlBinn))
+                {
+                    return null;
+                }
                 if (!isLocalDrive(GetDriveName(sqlBinn)))
                 {
                     AddToNotes = "FMS SQL Binn appears to incorrect - not a local drive - " + sqlBinn;
                 }
                 return sqlBinn;
             }
+        }
+
+        public bool isLocalDrive(string descriptor)
+        {
+            var queryString = "SELECT * From Win32_LogicalDisk where name = '" + descriptor + "' and DriveType = 3";
+            var now = DateTime.Now;
+            var objects = new ManagementObjectSearcher(queryString).Get();
+            DateTime.Now.Subtract(now);
+            foreach (ManagementObject obj2 in objects)
+            {
+                if (obj2["name"].ToString().ToUpper() == descriptor.ToUpper())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private string GetDriveName(string fileName)
+        {
+            var index = fileName.IndexOf(Path.VolumeSeparatorChar);
+            if (index > 0)
+            {
+                return fileName.Substring(0, index + 1);
+            }
+            return fileName;
         }
     }
 }

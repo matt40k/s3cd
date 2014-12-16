@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace Solus3configdiscovery
+﻿namespace Solus3configdiscovery
 {
     public class Entry
     {
         public static void Main(string[] args)
         {
-            Output output = new Output();
-            Settings settings = new Settings();
+            var output = new Output();
+            var settings = new Settings();
 
             output.WriteTitle("School SOLUS3 Deployment Details");
             output.WriteBlankLine(2);
